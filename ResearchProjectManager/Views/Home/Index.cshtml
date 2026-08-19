@@ -1,0 +1,43 @@
+﻿@{
+    ViewData["Title"] = "Home Page";
+}
+
+<div class="container mt-5">
+    <div class="p-5 mb-4 bg-light rounded-3 shadow-sm border">
+        <div class="container-fluid py-5 text-center">
+            
+            <h1 class="display-4 fw-bold text-dark mb-4">Research Project Manager</h1>
+            <p class="col-md-8 mx-auto fs-5 text-muted mb-5">
+                A streamlined, no-nonsense tool to organize your teams, manage project tasks, and track academic research progress.
+            </p>
+
+            @if (User.Identity?.IsAuthenticated == true)
+            {
+                <div class="d-flex justify-content-center gap-3">
+                    <a asp-controller="Dashboard" asp-action="Index" class="btn btn-primary btn-lg px-5 shadow-sm">
+                        Go to Dashboard
+                    </a>
+
+                    @if (User.IsInRole("Instructor") || User.IsInRole("Admin"))
+                    {
+                        <a asp-controller="ProjectTask" asp-action="Create" class="btn btn-outline-secondary btn-lg px-5 shadow-sm">
+                            Create New Task
+                        </a>
+                    }
+                </div>
+            }
+            else
+            {
+                <div class="d-flex justify-content-center gap-3">
+                    <a asp-area="Identity" asp-page="/Account/Login" class="btn btn-primary btn-lg px-5 shadow-sm">
+                        Log In
+                    </a>
+                    <a asp-area="Identity" asp-page="/Account/Register" class="btn btn-outline-secondary btn-lg px-5 shadow-sm">
+                        Register
+                    </a>
+                </div>
+            }
+
+        </div>
+    </div>
+</div>
