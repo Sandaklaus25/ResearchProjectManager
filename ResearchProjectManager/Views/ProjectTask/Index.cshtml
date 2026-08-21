@@ -1,4 +1,5 @@
-﻿@if (User.IsInRole("Instructor") || User.IsInRole("Admin"))
+﻿@* Display all courses as cards TODO: Edit later currently doing else *@
+@if (User.IsInRole("Instructor"))
 {
     <div class="col-md-12 mb-4">
         <div class="card shadow-sm">

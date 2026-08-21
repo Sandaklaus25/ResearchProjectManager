@@ -12,15 +12,15 @@ using ResearchProjectManager.Data;
 namespace ResearchProjectManager.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    [Migration("20260510191541_InitialCreatePostIdentityCrisis")]
-    partial class InitialCreatePostIdentityCrisis
+    [Migration("20260820101433_InitialCreateSummerCrisis")]
+    partial class InitialCreateSummerCrisis
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
-                .HasAnnotation("ProductVersion", "10.0.7")
+                .HasAnnotation("ProductVersion", "10.0.11")
                 .HasAnnotation("Relational:MaxIdentifierLength", 128);
 
             SqlServerModelBuilderExtensions.UseIdentityColumns(modelBuilder);
@@ -193,6 +193,54 @@ namespace ResearchProjectManager.Migrations
                     b.ToTable("Comments", (string)null);
                 });
 
+            modelBuilder.Entity("ResearchProjectManager.Models.Course", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("Color")
+                        .IsRequired()
+                        .HasMaxLength(7)
+                        .HasColumnType("nvarchar(7)");
+
+                    b.Property<bool>("IsPrivate")
+                        .HasColumnType("bit");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<int>("OwnerId")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("OwnerId");
+
+                    b.ToTable("Courses", (string)null);
+                });
+
+            modelBuilder.Entity("ResearchProjectManager.Models.CourseMembers", b =>
+                {
+                    b.Property<int>("UserId")
+                        .HasColumnType("int");
+
+                    b.Property<int>("CourseId")
+                        .HasColumnType("int");
+
+                    b.Property<int>("Id")
+                        .HasColumnType("int");
+
+                    b.HasKey("UserId", "CourseId");
+
+                    b.HasIndex("CourseId");
+
+                    b.ToTable("CourseMembers", (string)null);
+                });
+
             modelBuilder.Entity("ResearchProjectManager.Models.ProjectTask", b =>
                 {
                     b.Property<int>("Id")
@@ -200,6 +248,12 @@ namespace ResearchProjectManager.Migrations
                         .HasColumnType("int");
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<int>("AuthorId")
+                        .HasColumnType("int");
+
+                    b.Property<int>("CourseId")
+                        .HasColumnType("int");
 
                     b.Property<string>("Description")
                         .IsRequired()
@@ -210,6 +264,10 @@ namespace ResearchProjectManager.Migrations
                         .HasColumnType("nvarchar(max)");
 
                     b.HasKey("Id");
+
+                    b.HasIndex("AuthorId");
+
+                    b.HasIndex("CourseId");
 
                     b.ToTable("ProjectTasks", (string)null);
                 });
@@ -293,6 +351,9 @@ namespace ResearchProjectManager.Migrations
                     b.Property<DateTime?>("CompletedAt")
                         .HasColumnType("datetime2");
 
+                    b.Property<int?>("CourseId")
+                        .HasColumnType("int");
+
                     b.Property<DateTime>("Deadline")
                         .HasColumnType("datetime2");
 
@@ -306,6 +367,8 @@ namespace ResearchProjectManager.Migrations
                         .HasColumnType("int");
 
                     b.HasKey("Id");
+
+                    b.HasIndex("CourseId");
 
                     b.HasIndex("TaskId");
 
@@ -323,7 +386,6 @@ namespace ResearchProjectManager.Migrations
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
                     b.Property<string>("Name")
-                        .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
                     b.HasKey("Id");
@@ -479,7 +541,7 @@ namespace ResearchProjectManager.Migrations
                     b.HasOne("ResearchProjectManager.Models.User", "User")
                         .WithMany("Attachments")
                         .HasForeignKey("UserId")
-                        .OnDelete(DeleteBehavior.Cascade)
+                        .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
                     b.Navigation("TaskAssignment");
@@ -498,12 +560,61 @@ namespace ResearchProjectManager.Migrations
                     b.HasOne("ResearchProjectManager.Models.User", "User")
                         .WithMany("Comments")
                         .HasForeignKey("UserId")
-                        .OnDelete(DeleteBehavior.Cascade)
+                        .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
                     b.Navigation("TaskAssignment");
 
                     b.Navigation("User");
+                });
+
+            modelBuilder.Entity("ResearchProjectManager.Models.Course", b =>
+                {
+                    b.HasOne("ResearchProjectManager.Models.User", "Owner")
+                        .WithMany()
+                        .HasForeignKey("OwnerId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Owner");
+                });
+
+            modelBuilder.Entity("ResearchProjectManager.Models.CourseMembers", b =>
+                {
+                    b.HasOne("ResearchProjectManager.Models.Course", "Course")
+                        .WithMany("Members")
+                        .HasForeignKey("CourseId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("ResearchProjectManager.Models.User", "User")
+                        .WithMany("EnrolledIn")
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("Course");
+
+                    b.Navigation("User");
+                });
+
+            modelBuilder.Entity("ResearchProjectManager.Models.ProjectTask", b =>
+                {
+                    b.HasOne("ResearchProjectManager.Models.User", "Author")
+                        .WithMany()
+                        .HasForeignKey("AuthorId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("ResearchProjectManager.Models.Course", "Course")
+                        .WithMany("Tasks")
+                        .HasForeignKey("CourseId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Author");
+
+                    b.Navigation("Course");
                 });
 
             modelBuilder.Entity("ResearchProjectManager.Models.Subtask", b =>
@@ -517,7 +628,7 @@ namespace ResearchProjectManager.Migrations
                     b.HasOne("ResearchProjectManager.Models.User", "User")
                         .WithMany("Subtasks")
                         .HasForeignKey("UserId")
-                        .OnDelete(DeleteBehavior.Cascade)
+                        .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
                     b.Navigation("TaskAssignment");
@@ -527,6 +638,10 @@ namespace ResearchProjectManager.Migrations
 
             modelBuilder.Entity("ResearchProjectManager.Models.TaskAssignment", b =>
                 {
+                    b.HasOne("ResearchProjectManager.Models.Course", null)
+                        .WithMany("TaskAssignments")
+                        .HasForeignKey("CourseId");
+
                     b.HasOne("ResearchProjectManager.Models.ProjectTask", "Task")
                         .WithMany("TaskAssignments")
                         .HasForeignKey("TaskId")
@@ -563,6 +678,15 @@ namespace ResearchProjectManager.Migrations
                     b.Navigation("User");
                 });
 
+            modelBuilder.Entity("ResearchProjectManager.Models.Course", b =>
+                {
+                    b.Navigation("Members");
+
+                    b.Navigation("TaskAssignments");
+
+                    b.Navigation("Tasks");
+                });
+
             modelBuilder.Entity("ResearchProjectManager.Models.ProjectTask", b =>
                 {
                     b.Navigation("TaskAssignments");
@@ -589,6 +713,8 @@ namespace ResearchProjectManager.Migrations
                     b.Navigation("Attachments");
 
                     b.Navigation("Comments");
+
+                    b.Navigation("EnrolledIn");
 
                     b.Navigation("Subtasks");
 

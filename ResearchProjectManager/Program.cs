@@ -15,6 +15,7 @@ builder.Services.AddScoped<CommentService>();
 builder.Services.AddScoped<AttachmentService>();
 builder.Services.AddScoped<TaskAssignmentService>();
 builder.Services.AddScoped<UserService>();
+builder.Services.AddScoped<CourseService>();
 
 builder.Services.AddScoped<IEmailSender, EmailSender>();
 

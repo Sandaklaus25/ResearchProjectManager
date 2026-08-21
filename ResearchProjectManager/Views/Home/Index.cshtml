@@ -2,42 +2,147 @@
     ViewData["Title"] = "Home Page";
 }
 
-<div class="container mt-5">
-    <div class="p-5 mb-4 bg-light rounded-3 shadow-sm border">
-        <div class="container-fluid py-5 text-center">
-            
-            <h1 class="display-4 fw-bold text-dark mb-4">Research Project Manager</h1>
-            <p class="col-md-8 mx-auto fs-5 text-muted mb-5">
-                A streamlined, no-nonsense tool to organize your teams, manage project tasks, and track academic research progress.
+<style>
+    /* Custom hover inversions for the hero banner buttons */
+    .btn-hero-primary {
+        background-color: #ffffff;
+        color: #2D3748; /* Soft, warm deep charcoal */
+        border: 2px solid #ffffff;
+        font-weight: 500;
+        transition: all 0.2s ease-in-out;
+    }
+
+        .btn-hero-primary:hover {
+            background-color: transparent;
+            color: #ffffff;
+            border-color: #ffffff;
+        }
+
+    .btn-hero-outline {
+        background-color: transparent;
+        color: #ffffff;
+        border: 2px solid #ffffff;
+        font-weight: 500;
+        transition: all 0.2s ease-in-out;
+    }
+
+        .btn-hero-outline:hover {
+            background-color: #ffffff;
+            color: #2D3748;
+            border-color: #ffffff;
+        }
+</style>
+
+<div class="container mt-3">
+    <!-- VIBRANT HERO BANNER WITH STABLE PADDING -->
+    <div class="p-4 pb-3 mb-3 rounded-4 shadow-lg border-0 position-relative overflow-hidden text-white" style="background: linear-gradient(135deg, #2C3E50 0%, #4CA1AF 100%);">
+
+        <!-- Welcome badge sits at the top without affecting the main container height balance -->
+        @if (User.Identity?.IsAuthenticated == true)
+        {
+            <div class="text-center">
+                <span class="badge bg-white bg-opacity-25 text-white px-3 py-2 rounded-pill fw-semibold" style="font-size: 1.1rem;">
+                    <i class="bi bi-person-badge-fill me-1"></i> Welcome back, @User.Identity.Name
+                </span>
+            </div>
+        }
+        else
+        {
+            <!-- Invisible spacer matching the exact same size -->
+            <div class="text-center" style="visibility: hidden; pointer-events: none;">
+                <span class="badge px-3 py-2 fw-semibold" style="font-size: 1.1rem;">Placeholder</span>
+            </div>
+        }
+
+        <!-- Uniform padding ensures logged-in and logged-out banner heights match perfectly -->
+        <div class="container-fluid pt-3 pb-3 text-center">
+
+            <h1 class="display-4 fw-bold mb-4 text-white">Research Project Manager</h1>
+            <p class="col-lg-8 mx-auto fs-5 text-light opacity-85" style="margin-bottom:2.2rem">
+                A streamlined, modern platform to organize your academic teams, manage project tasks, and track research milestones effortlessly.
             </p>
+            <div style="padding-bottom:0.38rem; margin-top:2.3rem">
+                @if (User.Identity?.IsAuthenticated == true)
+                {
+                    <div class="d-flex justify-content-center gap-3 flex-wrap">
 
-            @if (User.Identity?.IsAuthenticated == true)
-            {
-                <div class="d-flex justify-content-center gap-3">
-                    <a asp-controller="Dashboard" asp-action="Index" class="btn btn-primary btn-lg px-5 shadow-sm">
-                        Go to Dashboard
-                    </a>
+                        @if (User.IsInRole("Instructor") || User.IsInRole("Student"))
+                        {
+                            <a asp-controller="Course" asp-action="Index" class="btn btn-hero-primary btn-lg px-5 shadow-sm">
+                                <i class="bi bi-journal-bookmark me-2"></i> Go to Courses
+                            </a>
+                        }
+                        @if (User.IsInRole("Student"))
+                        {
+                            <a asp-controller="Project" asp-action="Index" class="btn btn-hero-outline btn-lg px-5 shadow-sm">
+                                <i class="bi bi-kanban me-2"></i> Go to Projects
+                            </a>
+                        }
+                        @if (User.IsInRole("Instructor"))
+                        {
+                            <a asp-controller="Course" asp-action="Create" class="btn btn-hero-outline btn-lg px-4 shadow-sm">
+                                <i class="bi bi-plus-circle me-2"></i> Create New Course
+                            </a>
+                        }
 
-                    @if (User.IsInRole("Instructor") || User.IsInRole("Admin"))
-                    {
-                        <a asp-controller="ProjectTask" asp-action="Create" class="btn btn-outline-secondary btn-lg px-5 shadow-sm">
-                            Create New Task
+                        @if (User.IsInRole("Admin"))
+                        {
+                            <a asp-controller="AdminPanel" asp-action="Index" class="btn btn-hero-outline btn-lg shadow-sm text-center" style="width: 250px;">
+                                <i class="bi bi-shield-lock me-2"></i> Admin Panel
+                            </a>
+                        }
+                    </div>
+                }
+                else
+                {
+                    <div class="d-flex justify-content-center gap-3 mt-4">
+                        <a asp-area="Identity" asp-page="/Account/Login" class="btn btn-hero-primary btn-lg shadow-sm text-center" style="width: 170px;">
+                            <i class="bi bi-box-arrow-in-right me-2"></i> Log In
                         </a>
-                    }
-                </div>
-            }
-            else
-            {
-                <div class="d-flex justify-content-center gap-3">
-                    <a asp-area="Identity" asp-page="/Account/Login" class="btn btn-primary btn-lg px-5 shadow-sm">
-                        Log In
-                    </a>
-                    <a asp-area="Identity" asp-page="/Account/Register" class="btn btn-outline-secondary btn-lg px-5 shadow-sm">
-                        Register
-                    </a>
-                </div>
-            }
-
+                        <a asp-area="Identity" asp-page="/Account/Register" class="btn btn-hero-outline btn-lg shadow-sm text-center" style="width: 170px;">
+                            <i class="bi bi-person-plus me-2"></i> Register
+                        </a>
+                    </div>
+                }
+            </div>
         </div>
+    </div>
+
+    <!-- FEATURE HIGHLIGHTS SECTION WITH COLORFUL TOP BORDERS -->
+    <div class="row g-4 text-center mb-5">
+
+        <!-- Card 1: Course Management -->
+        <div class="col-md-4">
+            <div class="p-4 h-100 bg-white rounded-3 shadow-sm border-0 position-relative" style="border-top: 6px solid #3498DB !important;">
+                <div class="text-primary fs-2 mb-3 mt-2">
+                    <i class="bi bi-journal-check"></i>
+                </div>
+                <h5 class="fw-bold mb-2 text-dark">Course Management</h5>
+                <p class="text-muted small mb-0">Browse public and private course directories, manage student rosters, and keep your materials organized.</p>
+            </div>
+        </div>
+
+        <!-- Card 2: Team Collaboration -->
+        <div class="col-md-4">
+            <div class="p-4 h-100 bg-white rounded-3 shadow-sm border-0 position-relative" style="border-top: 6px solid #8E44AD !important;">
+                <div class="fs-2 mb-3 mt-2" style="color: #8E44AD;">
+                    <i class="bi bi-people-fill"></i>
+                </div>
+                <h5 class="fw-bold mb-2 text-dark">Team Collaboration</h5>
+                <p class="text-muted small mb-0">Collaborate with peers and instructors seamlessly on research tasks and milestones in real-time.</p>
+            </div>
+        </div>
+
+        <!-- Card 3: Role-Based Access -->
+        <div class="col-md-4">
+            <div class="p-4 h-100 bg-white rounded-3 shadow-sm border-0 position-relative" style="border-top: 6px solid #2A9D8F !important;">
+                <div class="fs-2 mb-3 mt-2" style="color: #2A9D8F;">
+                    <i class="bi bi-shield-fill-check"></i>
+                </div>
+                <h5 class="fw-bold mb-2 text-dark">Role-Based Access</h5>
+                <p class="text-muted small mb-0">Secure, granular permissions tailored specifically for Admins, Instructors, and Students.</p>
+            </div>
+        </div>
+
     </div>
 </div>
