@@ -8,7 +8,7 @@ namespace ResearchProjectManager.Models
 
         public Role() { }
 
-        public Role(string name, string description = null) : base(name)
+        public Role(string name, string description) : base(name)
         {
             Description = description;
         }
@@ -19,7 +19,7 @@ namespace ResearchProjectManager.Models
             public const string Admin = "Admin";
             public const string Student = "Student";
             public const string Instructor = "Instructor";
-            public const string Assistant = "Assistant";
+            public const string Assistant = "TA";
 
            
             public static readonly Dictionary<string, string> AllRoles = new()
@@ -27,7 +27,7 @@ namespace ResearchProjectManager.Models
                 { Admin, "Administrator role with full system access" },
                 { Student, "Student role with limited access" },
                 { Instructor, "Instructor role for managing courses and students" },
-                { Assistant, "Assistant role for supporting instructors" }
+                { Assistant, "TA role for supporting instructors" }
             };
         }
     }

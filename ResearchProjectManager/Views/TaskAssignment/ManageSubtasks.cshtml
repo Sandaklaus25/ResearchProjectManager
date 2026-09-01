@@ -1,0 +1,162 @@
+﻿@using ResearchProjectManager.Enums
+@model ResearchProjectManager.ViewModels.SubtaskBoardViewModel
+
+@{
+    ViewData["Title"] = "Manage Subtasks";
+    bool isLocked = Model.Assignment.TaskStatus == ResearchProjectManager.Enums.TaskStatus.Completed;
+}
+
+<div class="container mt-4 mb-5">
+    <div class="mb-3">
+        <a asp-action="Details" asp-route-id="@Model.Assignment.Id" asp-route-courseId="@Model.CourseId" class="text-decoration-none text-muted fw-medium small">
+            <i class="bi bi-arrow-left me-1"></i> Back to Assignment Details
+        </a>
+    </div>
+
+    <div class="card shadow-sm border-0 rounded-4 overflow-hidden mb-4" style="border-top: 8px solid @Model.ThemeColor !important;">
+        <div class="card-body p-4">
+            <h3 class="fw-bold text-dark mb-1"><i class="bi bi-kanban me-2" style="color: @Model.ThemeColor;"></i> Subtasks Board</h3>
+            <p class="text-muted mb-0 small">Manage, add, and update workflow steps for: <strong>@Model.Assignment.Name</strong></p>
+        </div>
+    </div>
+
+    @if (isLocked)
+    {
+        <div class="alert alert-success border-0 shadow-sm rounded-4 mb-4 d-flex align-items-center">
+            <i class="bi bi-lock-fill fs-4 me-3 text-success"></i>
+            <div>
+                <strong>Board Locked:</strong> This assignment has been turned in. Subtasks can no longer be modified unless the assignment is unsubmitted.
+            </div>
+        </div>
+    }
+
+    @if (Model.IsStudent && !isLocked)
+    {
+        <div class="card shadow-sm border-0 rounded-4 mb-4 bg-light">
+            <div class="card-body p-4">
+                <h6 class="fw-bold text-dark mb-3"><i class="bi bi-plus-circle me-1"></i> Add New Step</h6>
+                <form asp-action="AddSubtask" method="post" class="row g-3">
+                    @Html.AntiForgeryToken()
+                    <input type="hidden" name="assignmentId" value="@Model.Assignment.Id" />
+                    <input type="hidden" name="courseId" value="@Model.CourseId" />
+
+                    <div class="col-md-4">
+                        <input type="text" name="name" class="form-control shadow-none" placeholder="Step Name *" required />
+                    </div>
+                    <div class="col-md-6">
+                        <input type="text" name="description" class="form-control shadow-none" placeholder="Short description (optional)" />
+                    </div>
+                    <div class="col-md-2">
+                        <button type="submit" class="btn text-white w-100 fw-bold shadow-sm" style="background-color: @Model.ThemeColor;">
+                            Add Step
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    }
+
+    <div class="row g-3">
+        @foreach (ResearchProjectManager.Enums.TaskStatus status in Enum.GetValues(typeof(ResearchProjectManager.Enums.TaskStatus)))
+        {
+            var columnSubtasks = Model.Assignment.Subtasks?.Where(s => s.Status == status).ToList() ?? new List<ResearchProjectManager.Models.Subtask>();
+
+            <div class="col-md-4">
+                <div class="card border-0 shadow-sm rounded-4 h-100 bg-white">
+                    <div class="card-header bg-transparent border-0 pt-3 px-3 d-flex justify-content-between align-items-center">
+                        <span class="fw-bold small text-uppercase text-secondary">
+                            @status.GetTaskStatusName()
+                        </span>
+                        <span class="badge bg-light text-dark border rounded-pill">@columnSubtasks.Count</span>
+                    </div>
+
+                    <div class="card-body px-3 pb-3 pt-0">
+                        @if (!columnSubtasks.Any())
+                        {
+                            <div class="text-muted fst-italic small text-center py-4 border rounded-3 bg-light border-opacity-50">
+                                No tasks here
+                            </div>
+                        }
+                        else
+                        {
+                            <div class="d-flex flex-column gap-3">
+                                @foreach (var subtask in columnSubtasks)
+                                {
+                                    <div class="border rounded-3 p-3 shadow-sm bg-white position-relative">
+                                        <div class="d-flex justify-content-between align-items-start mb-2">
+                                            <h6 class="fw-bold text-dark mb-0 pe-3">
+                                                @subtask.Name
+                                                @if (subtask.IsBaseTask)
+                                                {
+                                                    <span class="badge bg-dark text-white ms-2 align-middle" style="font-size: 0.65rem;"><i class="bi bi-shield-lock-fill me-1"></i>Base Task</span>
+                                                }
+                                            </h6>
+
+                                            @if (!subtask.IsBaseTask && Model.IsStudent && !isLocked)
+                                            {
+                                                <form asp-action="DeleteSubtask" method="post" class="m-0" onsubmit="return confirm('Delete this step?');">
+                                                    @Html.AntiForgeryToken()
+                                                    <input type="hidden" name="subtaskId" value="@subtask.Id" />
+                                                    <input type="hidden" name="assignmentId" value="@Model.Assignment.Id" />
+                                                    <input type="hidden" name="courseId" value="@Model.CourseId" />
+                                                    <button type="submit" class="btn btn-sm text-danger p-0 border-0 bg-transparent" title="Delete step">
+                                                        <i class="bi bi-x-lg"></i>
+                                                    </button>
+                                                </form>
+                                            }
+                                        </div>
+
+                                        @if (!string.IsNullOrWhiteSpace(subtask.Description))
+                                        {
+                                            <p class="text-muted small mb-2">@subtask.Description</p>
+                                        }
+
+                                        <div class="mb-3 p-2 rounded bg-light border" style="font-size: 0.7rem;">
+                                            <div class="text-muted"><i class="bi bi-pencil-square me-1"></i> Created by: <strong>@(subtask.IsBaseTask ? (Model.Assignment.Task?.Author?.UserName ?? "Course Instructor") : (subtask.Creator?.UserName ?? "Unknown"))</strong></div>
+                                            @if (subtask.LastStatusUpdater != null)
+                                            {
+                                                <div class="text-muted mt-1"><i class="bi bi-arrow-left-right me-1"></i> Last moved by: <strong>@subtask.LastStatusUpdater.UserName</strong></div>
+                                            }
+                                        </div>
+
+                                        @if (Model.IsStudent && !isLocked)
+                                        {
+                                            <form asp-action="UpdateSubtaskStatus" method="post" class="mt-2">
+                                                @Html.AntiForgeryToken()
+                                                <input type="hidden" name="subtaskId" value="@subtask.Id" />
+                                                <input type="hidden" name="assignmentId" value="@Model.Assignment.Id" />
+                                                <input type="hidden" name="courseId" value="@Model.CourseId" />
+
+                                                <select name="status" class="form-select form-select-sm shadow-none border-secondary border-opacity-25 fw-medium text-secondary" onchange="this.form.submit()">
+                                                    @foreach (ResearchProjectManager.Enums.TaskStatus optStatus in Enum.GetValues(typeof(ResearchProjectManager.Enums.TaskStatus)))
+                                                    {
+                                                        if (subtask.IsBaseTask && optStatus == ResearchProjectManager.Enums.TaskStatus.Cancelled) continue;
+
+                                                        if (optStatus == subtask.Status)
+                                                        {
+                                                            <option value="@optStatus" selected>@optStatus.GetTaskStatusName()</option>
+                                                        }
+                                                        else
+                                                        {
+                                                            <option value="@optStatus">@optStatus.GetTaskStatusName()</option>
+                                                        }
+                                                    }
+                                                </select>
+                                            </form>
+                                        }
+                                        else
+                                        {
+                                            <div class="mt-2 p-1 border rounded bg-light text-center small fw-bold text-muted shadow-sm">
+                                                @subtask.Status.GetTaskStatusName()
+                                            </div>
+                                        }
+                                    </div>
+                                }
+                            </div>
+                        }
+                    </div>
+                </div>
+            </div>
+        }
+    </div>
+</div>

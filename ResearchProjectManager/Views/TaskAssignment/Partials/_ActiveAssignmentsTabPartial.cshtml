@@ -1,0 +1,71 @@
+﻿@using ResearchProjectManager.Enums
+@model List<ResearchProjectManager.Models.TaskAssignment>
+
+@{
+    string courseThemeColor = ViewBag.CourseColor ?? "#2D3748";
+}
+
+@if (!Model.Any())
+{
+    <div class="text-center bg-white rounded-4 shadow-sm py-5">
+        <div class="text-muted fs-1 mb-3"><i class="bi bi-journal-x"></i></div>
+        <h5 class="fw-bold text-dark">No active assignments</h5>
+    </div>
+}
+else
+{
+    <div class="d-flex flex-column gap-2">
+        @foreach (var assignment in Model)
+        {
+            string statusClass = assignment.TaskStatus == ResearchProjectManager.Enums.TaskStatus.InProgress ? "bg-primary" : "bg-warning text-dark";
+            string courseColor = assignment.Task?.Course != null && CourseTheme.Colors.TryGetValue(assignment.Task.Course.Color, out var hex) ? hex : courseThemeColor;
+
+            <div class="sortable-assignment assignment-row bg-white d-flex flex-column flex-md-row justify-content-between py-3 px-4 rounded-4 shadow-sm mb-2" data-name="@assignment.Name" onclick="window.location.href='@Url.Action("Details", "TaskAssignment", new { id = assignment.Id, courseId = assignment.Task?.CourseId ?? ViewBag.CourseId })'">
+                <div class="w-100 mb-2 mb-md-0">
+                    <div class="d-flex align-items-center flex-wrap gap-2 mb-2">
+                        <span class="text-muted small fw-bold" style="font-size: 0.75rem;"><i class="bi bi-people-fill me-1"></i> @(assignment.Team?.Name ?? "Group")</span>
+
+                        @if (assignment.Subtasks != null && assignment.Subtasks.Any())
+                        {
+                            var completedSteps = assignment.Subtasks.Count(s => s.Status == ResearchProjectManager.Enums.TaskStatus.Completed);
+                            <span class="text-muted small fw-bold" style="font-size: 0.75rem;"><i class="bi bi-check2-square me-1"></i> @completedSteps / @assignment.Subtasks.Count steps</span>
+                        }
+                        else
+                        {
+                            <span class="text-muted small fw-bold" style="font-size: 0.75rem;"><i class="bi bi-dash"></i> No steps</span>
+                        }
+
+                        <span class="badge bg-light text-secondary border rounded-pill px-2 py-1" style="font-size: 0.75rem;"><i class="bi bi-calendar-event me-1"></i> Due: @assignment.Deadline.ToString("MMM dd, yyyy")</span>
+
+                        @if (assignment.Task?.Course != null)
+                        {
+                            <span class="badge text-white rounded-pill px-2 py-1" style="font-size: 0.75rem; background-color: @courseColor;"><i class="bi bi-book me-1"></i> @assignment.Task.Course.Name</span>
+                        }
+
+                        <span class="badge @statusClass rounded-pill px-2 py-1" style="font-size: 0.75rem;">@assignment.TaskStatus.GetTaskStatusName()</span>
+
+                        <span class="badge bg-secondary text-white border rounded-pill px-2 py-1" style="font-size: 0.75rem;"><i class="bi bi-hourglass-split me-1"></i> Not graded</span>
+                    </div>
+
+                    <h5 class="fw-bold text-dark mb-0 mt-1" style="font-size: 1.1rem;">
+                        @assignment.Name
+                        @if (assignment.Task != null)
+                        {
+                            <span class="text-muted fw-normal opacity-75" style="font-size: 1rem;">| @assignment.Task.Name</span>
+                        }
+                    </h5>
+                </div>
+                @if (User.IsInRole("Instructor") || User.IsInRole("TA"))
+                {
+                    <div class="d-flex align-items-center gap-2 ms-md-3" style="position: relative; z-index: 2;">
+                        <form asp-controller="TaskAssignment" asp-action="Delete" asp-route-id="@assignment.Id" asp-route-courseId="@(assignment.Task?.CourseId ?? ViewBag.CourseId)" method="post" class="m-0" onsubmit="event.stopPropagation(); return confirm('Are you sure you want to delete this assignment?');">
+                            <button type="submit" class="btn btn-sm btn-outline-danger rounded-pill px-4 py-2 fw-bold shadow-sm custom-action-btn" onclick="event.stopPropagation();">
+                                <i class="bi bi-trash3 me-1"></i> Delete
+                            </button>
+                        </form>
+                    </div>
+                }
+            </div>
+        }
+    </div>
+}

@@ -1,0 +1,132 @@
+﻿@model ResearchProjectManager.Models.Course
+
+@{
+    ViewData["Title"] = "Edit Course";
+    string themeColor = ResearchProjectManager.Enums.CourseTheme.Colors.ContainsKey(Model.Color)
+        ? ResearchProjectManager.Enums.CourseTheme.Colors[Model.Color]
+        : "#0d6efd";
+}
+
+<style>
+    .color-circle-input {
+        display: none;
+    }
+
+    .color-circle-label {
+        width: 30px; 
+        height: 30px;
+        border-radius: 50%;
+        cursor: pointer;
+        transition: transform 0.2s ease, box-shadow 0.2s ease;
+        display: block;
+    }
+
+    .color-circle-input:checked + .color-circle-label {
+        transform: scale(1.15);
+        box-shadow: 0 0 0 2px #ffffff, 0 0 0 4px #0d6efd;
+    }
+</style>
+
+<div class="container mt-4 mb-5" style="max-width: 700px;">
+    <div class="mb-3">
+        <a asp-action="Details" asp-route-id="@Model.Id" class="text-decoration-none text-muted fw-medium" style="transition: color 0.2s;" onmouseover="this.style.color='#2D3748'" onmouseout="this.style.color='#6c757d'">
+            <i class="bi bi-arrow-left me-1"></i> Back to Course Details
+        </a>
+    </div>
+
+    <div class="card shadow-sm border-0 rounded-4 overflow-hidden mb-3" id="main-form-card" style="border-top: 10px solid @(themeColor) !important; background: linear-gradient(to bottom right, #ffffff, #f8fafc);">
+        <div class="card-body p-4">
+            <div class="d-flex align-items-center mb-3">
+                <div class="rounded-circle d-flex align-items-center justify-content-center me-3 shadow-sm" id="form-icon-circle" style="width: 40px; height: 40px; background-color: @(themeColor); color: white;">
+                    <i class="bi bi-pencil fs-5"></i>
+                </div>
+                <div>
+                    <h3 class="fw-bold text-dark mb-0">Edit Course</h3>
+                    <p class="text-muted mb-0" style="font-size: 0.85rem;">Updating <strong class="text-dark">@Model.Name</strong></p>
+                </div>
+            </div>
+
+            <form asp-action="Edit" method="post">
+                @Html.AntiForgeryToken()
+                <input type="hidden" asp-for="Id" />
+                <input type="hidden" asp-for="OwnerId" />
+                <input type="hidden" asp-for="SpecialCode" />
+
+                <div asp-validation-summary="ModelOnly" class="text-danger mb-2"></div>
+
+                <div class="mb-3">
+                    <label asp-for="Name" class="form-label fw-semibold text-dark mb-1">Course Name <span class="text-danger">*</span></label>
+                    <input asp-for="Name" class="form-control bg-light border-0 shadow-none" required />
+                    <span asp-validation-for="Name" class="text-danger small"></span>
+                </div>
+
+                <div class="mb-3">
+                    <label asp-for="Description" class="form-label fw-semibold text-dark mb-1">Description</label>
+                    <textarea asp-for="Description" class="form-control bg-light border-0 shadow-none" rows="4"></textarea>
+                    <span asp-validation-for="Description" class="text-danger small"></span>
+                </div>
+
+                <div class="row mb-3 g-3">
+                    <div class="col-md-7">
+                        <label asp-for="Color" class="form-label fw-semibold text-dark mb-1">Theme Color <span class="text-danger">*</span></label>
+                        <div class="d-grid gap-2 mt-1 pb-1" style="grid-template-columns: repeat(4, max-content);">
+                            @foreach (var theme in ResearchProjectManager.Enums.CourseTheme.Colors)
+                            {
+                                <div>
+                                    <input type="radio" asp-for="Color" value="@theme.Key" id="color_@theme.Key" class="color-circle-input" data-hex="@theme.Value" required />
+                                    <label for="color_@theme.Key" class="color-circle-label shadow-sm" style="background-color: @theme.Value;" title="@theme.Key"></label>
+                                </div>
+                            }
+                        </div>
+                        <span asp-validation-for="Color" class="text-danger small"></span>
+                    </div>
+
+                    <div class="col-md-5 d-flex align-items-center">
+                        <div class="form-check form-switch mt-md-3">
+                            <input class="form-check-input shadow-sm" type="checkbox" role="switch" asp-for="IsPrivate" id="privacySwitch">
+                            <label class="form-check-label fw-semibold ms-2 text-dark" for="privacySwitch">Make Course Private</label>
+                        </div>
+                    </div>
+                </div>
+
+                <hr class="text-muted opacity-25 my-3">
+
+                <div class="d-flex justify-content-between align-items-center">
+                    <div class="text-muted small d-none d-sm-block">
+                        <i class="bi bi-info-circle me-1"></i> Changes applied immediately.
+                    </div>
+                    <div class="d-flex gap-2">
+                        <a asp-action="Details" asp-route-id="@Model.Id" class="btn btn-sm btn-outline-secondary rounded-pill fw-medium px-4 py-2">Cancel</a>
+                        <button type="submit" class="btn btn-sm rounded-pill fw-bold text-white shadow-sm px-4 py-2" style="background-color: @(themeColor); border-color: @(themeColor);">
+                            <i class="bi bi-check2-circle me-1"></i> Save Changes
+                        </button>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    @{
+        await Html.RenderPartialAsync("_ValidationScriptsPartial");
+    }
+    <script>
+        document.querySelectorAll('.color-circle-input').forEach(radio => {
+            radio.addEventListener('change', function() {
+                const hexColor = this.getAttribute('data-hex');
+                const card = document.getElementById('main-form-card');
+                const iconCircle = document.getElementById('form-icon-circle');
+
+                if (card) {
+                    card.style.setProperty('border-top', `10px solid ${hexColor}`, 'important');
+                }
+
+                if (iconCircle) {
+                    iconCircle.style.backgroundColor = hexColor;
+                    iconCircle.style.color = '#ffffff';
+                }
+            });
+        });
+    </script>
+}

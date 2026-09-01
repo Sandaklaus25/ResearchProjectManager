@@ -23,8 +23,9 @@ namespace ResearchProjectManager.Services
         public async Task<List<Attachment>> GetAttachmentsForAssigmentAsync(int taskAssignmentId)
         {
             return await _context.Attachments
-                .Include(a => a.User)
-                .Where(a => a.TaskAssignmentId == taskAssignmentId)
+                .Include(a => a.Comment)
+                    .ThenInclude(c => c.User)
+                .Where(a => a.Comment.TaskAssignmentId == taskAssignmentId)
                 .ToListAsync();
         }
 

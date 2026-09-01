@@ -1,16 +1,22 @@
-﻿using System;
+﻿using ResearchProjectManager.Enums;
+using System;
 using System.Collections.Generic;
-using ResearchProjectManager.Enums;
+using System.ComponentModel.DataAnnotations;
 
 namespace ResearchProjectManager.Models
 {
     public class TaskAssignment
     {
         public int Id { get; set; }
-        public TaskStatusEnum TaskStatus { get; set; }
+
+        [Required]
+        [MaxLength(40)]
+        public string Name { get; set; }
+        public Enums.TaskStatus TaskStatus { get; set; }
         public DateTime Deadline { get; set; }
 
-        //Null if not completed yet, otherwise the date of completion
+        [Range(0, 100)]
+        public int? Grade { get; set; }
         public DateTime? CompletedAt { get; set; }
         public int TaskId { get; set; }
         public ProjectTask Task { get; set; }
@@ -19,6 +25,7 @@ namespace ResearchProjectManager.Models
 
         public List<Subtask> Subtasks { get; set; } = new List<Subtask>();
         public List<Comment> Comments { get; set; } = new List<Comment>();
-        public List<Attachment> Attachments { get; set; } = new List<Attachment>();
+
+        public List<Attachment> TurnInAttachments { get; set; } = new List<Attachment>();
     }
 }

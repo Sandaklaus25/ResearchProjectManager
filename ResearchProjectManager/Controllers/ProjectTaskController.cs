@@ -1,67 +1,132 @@
 ﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
+using ResearchProjectManager.Enums;
 using ResearchProjectManager.Models;
 using ResearchProjectManager.Services;
 using ResearchProjectManager.ViewModels;
 
-namespace ResearchProjectManager.Controllers
+[Route("Course/{courseId}/ProjectTask/[action]")]
+[Authorize(Roles = "Instructor,TA")]
+public class ProjectTaskController : Controller
 {
-    [Route("Course/{courseId}/ProjectTask/[action]")]
-    public class ProjectTaskController : Controller
+    private readonly ProjectTaskService _projectTaskService;
+    private readonly CourseService _courseService;
+    private readonly UserManager<User> _userManager;
+
+    public ProjectTaskController(ProjectTaskService projectTaskService, CourseService courseService, UserManager<User> userManager)
     {
-        private readonly ProjectTaskService _taskService;
+        _projectTaskService = projectTaskService;
+        _courseService = courseService;
+        _userManager = userManager;
+    }
 
-        public ProjectTaskController(ProjectTaskService taskService)
+    private async Task<bool> ValidateCourseAccessAsync(int courseId)
+    {
+        var userIdString = _userManager.GetUserId(User);
+        if (!int.TryParse(userIdString, out int userId)) return false;
+        return await _courseService.UserHasAccessAsync(userId, courseId);
+    }
+
+    [HttpGet]
+    public async Task<IActionResult> Index(int courseId)
+    {
+        if (!await ValidateCourseAccessAsync(courseId))
         {
-            _taskService = taskService;
+            return RedirectToPage("/Account/AccessDenied", new { area = "Identity" });
         }
 
-        [HttpGet]
-        public async Task<IActionResult> Index()
+        var course = await _courseService.GetCourseByIdAsync(courseId);
+        if (course == null) return NotFound();
+
+        var tasks = await _projectTaskService.GetTasksByCourseIdAsync(courseId);
+
+        var viewModel = new ProjectTaskListViewModel
         {
-            var tasks = await _taskService.GetAllTasksAsync();
-            return View(tasks);
+            Tasks = tasks,
+            CourseId = courseId,
+            ThemeColor = CourseTheme.Colors[course.Color]
+        };
+
+        return View(viewModel);
+    }
+
+    [HttpGet("{id}")]
+    public async Task<IActionResult> Details(int courseId, int id)
+    {
+        if (!await ValidateCourseAccessAsync(courseId))
+        {
+            return RedirectToPage("/Account/AccessDenied", new { area = "Identity" });
         }
 
-        [HttpGet("{id}")]
-        public async Task<IActionResult> Details(int id)
+        var course = await _courseService.GetCourseByIdAsync(courseId);
+        if (course == null) return NotFound();
+
+        var task = await _projectTaskService.GetTaskByIdAsync(id);
+        if (task == null || task.CourseId != courseId) return NotFound();
+
+        var viewModel = new ProjectTaskDetailsViewModel
         {
-            var task = await _taskService.GetTaskByIdAsync(id);
+            Task = task,
+            CourseId = courseId,
+            ThemeColor = CourseTheme.Colors[course.Color]
+        };
 
-            if (task == null)
-            {
-                return NotFound();
-            }
+        return View(viewModel);
+    }
 
-            return View(task);
+    [HttpGet]
+    public async Task<IActionResult> Create(int courseId)
+    {
+        if (!await ValidateCourseAccessAsync(courseId))
+        {
+            return RedirectToPage("/Account/AccessDenied", new { area = "Identity" });
         }
 
-        [HttpGet]
-        [Authorize(Roles = "Instructor")]
-        public IActionResult Create()
+        var course = await _courseService.GetCourseByIdAsync(courseId);
+        if (course == null) return NotFound();
+
+        var viewModel = new ProjectTaskCreateViewModel
         {
-            return View(new ProjectTaskCreateViewModel());
+            CourseId = courseId,
+            ThemeColor = CourseTheme.Colors[course.Color]
+        };
+
+        return View(viewModel);
+    }
+
+    [HttpPost]
+    [ValidateAntiForgeryToken]
+    public async Task<IActionResult> Create(int courseId, ProjectTaskCreateViewModel model)
+    {
+        if (!await ValidateCourseAccessAsync(courseId))
+        {
+            return RedirectToPage("/Account/AccessDenied", new { area = "Identity" });
         }
 
-        [HttpPost]
-        [Authorize(Roles = "Instructor")]
-        [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Create(ProjectTaskCreateViewModel model)
+        if (ModelState.IsValid)
         {
-            if (ModelState.IsValid)
-            {
-                var newTask = new ProjectTask
-                {
-                    Name = model.Name,
-                    Description = model.Description
-                };
-
-                await _taskService.CreateTaskAsync(newTask);
-
-                return RedirectToAction("Index", "Dashboard");
-            }
-
-            return View(model);
+            var userId = int.Parse(_userManager.GetUserId(User)!);
+            await _projectTaskService.CreateTaskFromViewModelAsync(model, courseId, userId);
+            return RedirectToAction("Index", new { courseId });
         }
+
+        var course = await _courseService.GetCourseByIdAsync(courseId);
+        model.CourseId = courseId;
+        model.ThemeColor = CourseTheme.Colors[course.Color];
+        return View(model);
+    }
+
+    [HttpPost]
+    [ValidateAntiForgeryToken]
+    public async Task<IActionResult> Delete(int courseId, int id)
+    {
+        if (!await ValidateCourseAccessAsync(courseId))
+        {
+            return RedirectToPage("/Account/AccessDenied", new { area = "Identity" });
+        }
+
+        await _projectTaskService.DeleteTaskAsync(id);
+        return RedirectToAction(nameof(Index), new { courseId });
     }
 }

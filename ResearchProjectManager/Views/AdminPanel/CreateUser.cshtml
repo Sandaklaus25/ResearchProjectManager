@@ -1,0 +1,86 @@
+﻿@model ResearchProjectManager.ViewModels.AdminCreateUserViewModel
+
+@{
+    ViewData["Title"] = "Create New User";
+}
+
+<div class="container mt-3 mb-5 d-flex flex-column align-items-center">
+
+    <div class="w-100 mb-3" style="max-width: 650px;">
+        <a asp-action="Index" class="text-decoration-none text-muted fw-medium d-inline-block" style="transform: translateX(-10px);">
+            <i class="bi bi-arrow-left me-1"></i> Back to Admin Panel
+        </a>
+    </div>
+
+    <div class="card shadow-sm border-0 rounded-4 w-100" style="max-width: 650px;">
+        <div class="card-header bg-dark text-white p-4 border-0 rounded-top-4 text-center">
+            <h4 class="mb-0 fw-bold"><i class="bi bi-person-fill-gear me-2"></i> Create New User</h4>
+            <p class="mb-0 small text-white-50 mt-1">Deploy a new user directly into a system role.</p>
+        </div>
+        <div class="card-body p-4 bg-white">
+            <form asp-action="CreateUser" method="post" autocomplete="off">
+                @Html.AntiForgeryToken()
+                <div asp-validation-summary="ModelOnly" class="text-danger small mb-3"></div>
+
+                
+                <input type="text" style="display:none;" autocomplete="username" />
+                <input type="password" style="display:none;" autocomplete="current-password" />
+
+                
+                <div class="row g-3 mb-3">
+                    <div class="col-md-7">
+                        <label asp-for="Username" class="form-label small fw-bold text-muted">Username</label>
+                        <input asp-for="Username" class="form-control bg-light" required autocomplete="new-password" />
+                        <span asp-validation-for="Username" class="text-danger small"></span>
+                    </div>
+                    <div class="col-md-5">
+                        <label asp-for="Role" class="form-label small fw-bold text-muted">System Rank</label>
+                        <select asp-for="Role" class="form-select bg-light" required>
+                            <option value="" disabled selected>Select access level...</option>
+                            <option value="Admin">Administrator</option>
+                            <option value="Instructor">Instructor</option>
+                            <option value="TA">Teaching Assistant</option>
+                            <option value="Student">Student</option>
+                        </select>
+                        <span asp-validation-for="Role" class="text-danger small"></span>
+                    </div>
+                </div>
+
+                
+                <div class="mb-3">
+                    <label asp-for="Email" class="form-label small fw-bold text-muted">Email Address</label>
+                    <input asp-for="Email" type="email" class="form-control bg-light" required autocomplete="new-password" />
+                    <span asp-validation-for="Email" class="text-danger small"></span>
+                </div>
+
+                
+                <div class="row g-3 mb-4">
+                    <div class="col-md-6">
+                        <label asp-for="Password" class="form-label small fw-bold text-muted">Password</label>
+                        <input asp-for="Password" type="password" class="form-control bg-light" required autocomplete="new-password" />
+                        <span asp-validation-for="Password" class="text-danger small"></span>
+                    </div>
+                    <div class="col-md-6">
+                        <label asp-for="ConfirmPassword" class="form-label small fw-bold text-muted">Confirm Password</label>
+                        <input asp-for="ConfirmPassword" type="password" class="form-control bg-light" required autocomplete="new-password" />
+                        <span asp-validation-for="ConfirmPassword" class="text-danger small"></span>
+                    </div>
+                </div>
+
+                
+                <div class="row g-3">
+                    <div class="col-6">
+                        <a asp-action="Index" class="btn btn-light border w-100 text-muted fw-medium py-2">Cancel</a>
+                    </div>
+                    <div class="col-6">
+                        <button type="submit" class="btn btn-dark w-100 fw-bold py-2">Create User</button>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}

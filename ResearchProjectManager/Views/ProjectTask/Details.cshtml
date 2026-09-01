@@ -1,0 +1,108 @@
+﻿@model ResearchProjectManager.ViewModels.ProjectTaskDetailsViewModel
+
+@{
+    ViewData["Title"] = "Task Details";
+}
+
+<div class="container mt-4 mb-5" style="max-width: 700px;">
+    
+    <div class="mb-3">
+        <a asp-action="Index" asp-route-courseId="@Model.CourseId" class="text-decoration-none text-muted fw-medium small custom-hover-link">
+            <i class="bi bi-arrow-left me-1"></i> Back to Assignments
+        </a>
+    </div>
+
+    
+    <div class="card shadow-sm border-0 rounded-4 overflow-hidden mb-3" style="border-top: 10px solid @(Model.ThemeColor) !important; background: linear-gradient(to bottom right, #ffffff, #f8fafc);">
+        <div class="card-body p-4 p-md-5">
+
+            
+            <div class="d-flex align-items-center mb-4 pb-3 border-bottom">
+                <div class="rounded-circle d-flex align-items-center justify-content-center me-3 shadow-sm flex-shrink-0" style="width: 56px; height: 56px; background-color: @(Model.ThemeColor); color: white;">
+                    <i class="bi bi-journal-text fs-3"></i>
+                </div>
+                <div>
+                    <h3 class="fw-bold text-dark mb-2">@Model.Task.Name</h3>
+                    <div class="d-flex flex-wrap gap-3 text-muted small fw-medium">
+                        <span title="Author"><i class="bi bi-person-circle me-1"></i> @(Model.Task.Author?.UserName ?? "Unknown")</span>
+                        <span title="Creation Date"><i class="bi bi-calendar3 me-1"></i> @Model.Task.CreatedAt.ToString("MMM dd, yyyy HH:mm")</span>
+                    </div>
+                </div>
+            </div>
+
+            
+            <div class="mb-4">
+                <h6 class="fw-bold text-dark mb-3">Task Description</h6>
+                @if (!string.IsNullOrWhiteSpace(Model.Task.Description))
+                {
+                    <div class="bg-white border rounded-3 p-4 shadow-sm text-dark" style="white-space: pre-wrap; font-size: 0.95rem;">@Model.Task.Description</div>
+                }
+                else
+                {
+                    <div class="bg-white border rounded-3 p-4 shadow-sm text-muted fst-italic">
+                        No general description provided.
+                    </div>
+                }
+            </div>
+
+           
+            <div class="mb-5">
+                <h6 class="fw-bold text-dark mb-3">Task Steps (Subtasks)</h6>
+
+                @if (Model.Task.BaseSubtasks != null && Model.Task.BaseSubtasks.Any())
+                {
+                    <div class="list-group shadow-sm border-0">
+                        @foreach (var subtask in Model.Task.BaseSubtasks)
+                        {
+                            <div class="list-group-item d-flex align-items-start p-3 border-light">
+                                <div class="me-3 mt-1" style="color: @(Model.ThemeColor);">
+                                    <i class="bi bi-check2-square fs-5"></i>
+                                </div>
+                                <div>
+                                    <h6 class="mb-1 fw-bold text-dark">@subtask.Name</h6>
+                                    @if (!string.IsNullOrWhiteSpace(subtask.Description))
+                                    {
+                                        <p class="mb-0 text-muted small">@subtask.Description</p>
+                                    }
+                                </div>
+                            </div>
+                        }
+                    </div>
+                }
+                else
+                {
+                    <div class="bg-white border rounded-3 p-4 shadow-sm text-muted fst-italic text-center">
+                        <i class="bi bi-list-task fs-4 d-block mb-2 text-black-50"></i>
+                        No specific steps defined for this project task.
+                    </div>
+                }
+            </div>
+
+            <hr class="text-muted opacity-25 my-4">
+
+            
+            <div class="d-flex justify-content-between align-items-center">
+                <div class="text-muted small fw-medium">
+                    <i class="bi bi-diagram-3 me-1" style="color: @(Model.ThemeColor);"></i>
+                    <strong>@(Model.Task.TaskAssignments?.Count ?? 0)</strong> Active Assignments
+                </div>
+                <div class="d-flex gap-2">
+                    <a asp-controller="TaskAssignment" asp-action="Create" asp-route-courseId="@Model.CourseId" asp-route-projectTaskId="@Model.Task.Id" class="btn rounded-pill fw-bold text-white shadow-sm px-4 py-2" style="background-color: @(Model.ThemeColor); border-color: @(Model.ThemeColor);">
+                        <i class="bi bi-send me-1"></i> Dispatch Task
+                    </a>
+                </div>
+            </div>
+
+        </div>
+    </div>
+</div>
+
+<style>
+    .custom-hover-link {
+        transition: color 0.2s;
+    }
+
+        .custom-hover-link:hover {
+            color: #2D3748 !important;
+        }
+</style>

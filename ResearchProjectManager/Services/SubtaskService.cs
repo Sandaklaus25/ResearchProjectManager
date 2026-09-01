@@ -16,7 +16,7 @@ namespace ResearchProjectManager.Services
 
         public async Task<Subtask> AddSubtaskAsync(Subtask subtask)
         {
-            subtask.Status = TaskStatusEnum.NotStarted;
+            subtask.Status = Enums.TaskStatus.NotStarted;
             _context.Subtasks.Add(subtask);
             await _context.SaveChangesAsync();
             return subtask;
@@ -47,7 +47,7 @@ namespace ResearchProjectManager.Services
             await _context.SaveChangesAsync();
         }
 
-        public async Task UpdateSubtaskStatusAsync(int id, TaskStatusEnum status)
+        public async Task UpdateSubtaskStatusAsync(int id, Enums.TaskStatus status)
         {
             var subtask = await _context.Subtasks.FindAsync(id);
             if (subtask == null)
@@ -58,9 +58,9 @@ namespace ResearchProjectManager.Services
             await _context.SaveChangesAsync();
         }
 
-        public async Task<List<Subtask>> GetSubtasksByTaskAssignmentIdAsync(int taskAssigmentId)
+        public async Task<List<Subtask>> GetSubtasksByTaskAssignmentIdAsync(int taskAssignmentId)
         {
-            return await _context.Subtasks.Where(s => s.TaskAssignmentId == taskAssigmentId).ToListAsync();
+            return await _context.Subtasks.Where(s => s.TaskAssignmentId == taskAssignmentId).ToListAsync();
         }
     }
 }

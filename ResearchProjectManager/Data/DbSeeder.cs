@@ -2,6 +2,8 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
+using ResearchProjectManager.Enums;
+using ResearchProjectManager.Helpers;
 using ResearchProjectManager.Models;
 using System;
 using System.Collections.Generic;
@@ -62,7 +64,7 @@ namespace ResearchProjectManager.Data
             var userManager = services.GetRequiredService<UserManager<User>>();
             var roleManager = services.GetRequiredService<RoleManager<Role>>();
 
-            string[] roleNames = { "Admin", "Instructor", "Student" };
+            string[] roleNames = { "Admin", "Instructor", "TA", "Student" };
             foreach (var roleName in roleNames)
             {
                 if (!await roleManager.RoleExistsAsync(roleName))
@@ -71,14 +73,27 @@ namespace ResearchProjectManager.Data
                 }
             }
 
-            var usersToSeed = new[]
-            {
+            var usersToSeed = new[] {
                 new { Username = "admin", Email = "admin@abv.bg", Role = "Admin" },
                 new { Username = "admin123", Email = "admin123@abv.bg", Role = "Admin" },
+
                 new { Username = "teacher", Email = "teacher@abv.bg", Role = "Instructor" },
                 new { Username = "teacher123", Email = "teacher123@abv.bg", Role = "Instructor" },
+                new { Username = "teacher45", Email = "teacher45@abv.bg", Role = "Instructor" },
+                new { Username = "teacher67", Email = "teacher67@abv.bg", Role = "Instructor" },
+    
+                new { Username = "ta1", Email = "ta@abv.bg", Role = "TA" },
+                new { Username = "ta2", Email = "ta123@abv.bg", Role = "TA" },
+                new { Username = "ta3", Email = "ta45@abv.bg", Role = "TA" },
+
                 new { Username = "student", Email = "student@abv.bg", Role = "Student" },
-                new { Username = "student123", Email = "student123@abv.bg", Role = "Student" }
+                new { Username = "student123", Email = "student123@abv.bg", Role = "Student" },
+
+                new { Username = "student10", Email = "student10@abv.bg", Role = "Student" },
+                new { Username = "student11", Email = "student11@abv.bg", Role = "Student" },
+                new { Username = "student12", Email = "student12@abv.bg", Role = "Student" },
+                new { Username = "student13", Email = "student13@abv.bg", Role = "Student" },
+                new { Username = "student14", Email = "student14@abv.bg", Role = "Student" }
             };
 
             foreach (var userInfo in usersToSeed)
@@ -115,18 +130,17 @@ namespace ResearchProjectManager.Data
 
             var teacherUser = await userManager.FindByNameAsync("teacher");
             var teacher123User = await userManager.FindByNameAsync("teacher123");
+            var teacher45User = await userManager.FindByNameAsync("teacher45");
+            var teacher67User = await userManager.FindByNameAsync("teacher67");
 
-            if (teacherUser == null || teacher123User == null)
+            if (teacherUser == null || teacher123User == null || teacher45User == null || teacher67User == null)
             {
                 return;
             }
 
-            // Assume student IDs are 5 and 6 based on your seeder order (admin=1, admin123=2, teacher=3, teacher123=4, student=5, student123=6)
-            // Or fetch them dynamically to be completely safe:
             var students = await userManager.GetUsersInRoleAsync("Student");
             var studentIds = students.Select(s => s.Id).ToList();
 
-            // Helper to create members: Owner + All Students (no other teachers)
             List<int> GetCourseMembers(int ownerId)
             {
                 var list = new List<int>(studentIds);
@@ -135,59 +149,105 @@ namespace ResearchProjectManager.Data
             }
 
             var courses = new List<Course>
-    {
-        // --- TEACHER 1 COURSES ---
-        new Course
-        {
-            Name = "Advanced Software Architecture",
-            IsPrivate = true,
-            Color = "#D9534F",
-            OwnerId = teacherUser.Id,
-            Members = GetCourseMembers(teacherUser.Id).Select(id => new CourseMembers { UserId = id }).ToList()
-        },
-        new Course
-        {
-            Name = "Database Internals & Tuning",
-            IsPrivate = true,
-            Color = "#F0AD4E",
-            OwnerId = teacherUser.Id,
-            Members = GetCourseMembers(teacherUser.Id).Select(id => new CourseMembers { UserId = id }).ToList()
-        },
-        new Course
-        {
-            Name = "Introduction to Web Design",
-            IsPrivate = false,
-            Color = "#8E44AD",
-            OwnerId = teacherUser.Id,
-            Members = GetCourseMembers(teacherUser.Id).Select(id => new CourseMembers { UserId = id }).ToList()
-        },
+            {
+                // TEACHER 1 COURSES
+                new Course
+                {
+                    Name = "Advanced Software Architecture",
+                    SpecialCode = CodeGenerator.GenerateSpecialCode(),
+                    IsPrivate = true,
+                    Color = CourseColor.Red,
+                    OwnerId = teacherUser.Id,
+                    Members = GetCourseMembers(teacherUser.Id).Select(id => new CourseMember { UserId = id }).ToList()
+                },
+                new Course
+                {
+                    Name = "Database Internals & Tuning",
+                    SpecialCode = CodeGenerator.GenerateSpecialCode(),
+                    IsPrivate = true,
+                    Color = CourseColor.Orange,
+                    OwnerId = teacherUser.Id,
+                    Members = GetCourseMembers(teacherUser.Id).Select(id => new CourseMember { UserId = id }).ToList()
+                },
+                new Course
+                {
+                    Name = "Introduction to Web Design",
+                    SpecialCode = CodeGenerator.GenerateSpecialCode(),
+                    IsPrivate = false,
+                    Color = CourseColor.Purple,
+                    OwnerId = teacherUser.Id,
+                    Members = GetCourseMembers(teacherUser.Id).Select(id => new CourseMember { UserId = id }).ToList()
+                },
 
-        // --- TEACHER 2 COURSES ---
-        new Course
-        {
-            Name = "Distributed Systems",
-            IsPrivate = true,
-            Color = "#f7ea59",
-            OwnerId = teacher123User.Id,
-            Members = GetCourseMembers(teacher123User.Id).Select(id => new CourseMembers { UserId = id }).ToList()
-        },
-        new Course
-        {
-            Name = "Cloud Infrastructure Security",
-            IsPrivate = true,
-            Color = "#3498DB",
-            OwnerId = teacher123User.Id,
-            Members = GetCourseMembers(teacher123User.Id).Select(id => new CourseMembers { UserId = id }).ToList()
-        },
-        new Course
-        {
-            Name = "Modern UI/UX Principles",
-            IsPrivate = false,
-            Color = "#16A085",
-            OwnerId = teacher123User.Id,
-            Members = GetCourseMembers(teacher123User.Id).Select(id => new CourseMembers { UserId = id }).ToList()
-        }
-    };
+                // TEACHER 2 COURSES 
+                new Course
+                {
+                    Name = "Distributed Systems",
+                    SpecialCode = CodeGenerator.GenerateSpecialCode(),
+                    IsPrivate = true,
+                    Color = CourseColor.Brown,
+                    OwnerId = teacher123User.Id,
+                    Members = GetCourseMembers(teacher123User.Id).Select(id => new CourseMember { UserId = id }).ToList()
+                },
+                new Course
+                {
+                    Name = "Cloud Infrastructure Security",
+                    SpecialCode = CodeGenerator.GenerateSpecialCode(),
+                    IsPrivate = true,
+                    Color = CourseColor.Blue,
+                    OwnerId = teacher123User.Id,
+                    Members = GetCourseMembers(teacher123User.Id).Select(id => new CourseMember { UserId = id }).ToList()
+                },
+                new Course
+                {
+                    Name = "Modern UI/UX Principles",
+                    SpecialCode = CodeGenerator.GenerateSpecialCode(),
+                    IsPrivate = false,
+                    Color = CourseColor.Teal,
+                    OwnerId = teacher123User.Id,
+                    Members = GetCourseMembers(teacher123User.Id).Select(id => new CourseMember { UserId = id }).ToList()
+                },
+
+                // TEACHER 3 COURSES 
+                new Course
+                {
+                    Name = "Data Structures & Algorithms",
+                    SpecialCode = CodeGenerator.GenerateSpecialCode(),
+                    IsPrivate = false,
+                    Color = CourseColor.Red,
+                    OwnerId = teacher45User.Id,
+                    Members = new List<CourseMember> { new CourseMember { UserId = teacher45User.Id } }
+                },
+                new Course
+                {
+                    Name = "Artificial Intelligence Foundations",
+                    SpecialCode = CodeGenerator.GenerateSpecialCode(),
+                    IsPrivate = false,
+                    Color = CourseColor.Orange,
+                    OwnerId = teacher45User.Id,
+                    Members = new List<CourseMember> { new CourseMember { UserId = teacher45User.Id } }
+                },
+
+                // TEACHER 4 COURSES
+                new Course
+                {
+                    Name = "Mobile Application Development",
+                    SpecialCode = CodeGenerator.GenerateSpecialCode(),
+                    IsPrivate = false,
+                    Color = CourseColor.Purple,
+                    OwnerId = teacher67User.Id,
+                    Members = new List<CourseMember> { new CourseMember { UserId = teacher67User.Id } }
+                },
+                new Course
+                {
+                    Name = "DevOps & Continuous Integration",
+                    SpecialCode = CodeGenerator.GenerateSpecialCode(),
+                    IsPrivate = false,
+                    Color = CourseColor.Blue,
+                    OwnerId = teacher67User.Id,
+                    Members = new List<CourseMember> { new CourseMember { UserId = teacher67User.Id } }
+                }
+            };
 
             await context.Courses.AddRangeAsync(courses);
             await context.SaveChangesAsync();

@@ -3,10 +3,10 @@
 }
 
 <style>
-    /* Custom hover inversions for the hero banner buttons */
+   
     .btn-hero-primary {
         background-color: #ffffff;
-        color: #2D3748; /* Soft, warm deep charcoal */
+        color: #2D3748; 
         border: 2px solid #ffffff;
         font-weight: 500;
         transition: all 0.2s ease-in-out;
@@ -34,10 +34,9 @@
 </style>
 
 <div class="container mt-3">
-    <!-- VIBRANT HERO BANNER WITH STABLE PADDING -->
+    
     <div class="p-4 pb-3 mb-3 rounded-4 shadow-lg border-0 position-relative overflow-hidden text-white" style="background: linear-gradient(135deg, #2C3E50 0%, #4CA1AF 100%);">
 
-        <!-- Welcome badge sits at the top without affecting the main container height balance -->
         @if (User.Identity?.IsAuthenticated == true)
         {
             <div class="text-center">
@@ -48,13 +47,11 @@
         }
         else
         {
-            <!-- Invisible spacer matching the exact same size -->
             <div class="text-center" style="visibility: hidden; pointer-events: none;">
                 <span class="badge px-3 py-2 fw-semibold" style="font-size: 1.1rem;">Placeholder</span>
             </div>
         }
 
-        <!-- Uniform padding ensures logged-in and logged-out banner heights match perfectly -->
         <div class="container-fluid pt-3 pb-3 text-center">
 
             <h1 class="display-4 fw-bold mb-4 text-white">Research Project Manager</h1>
@@ -74,8 +71,8 @@
                         }
                         @if (User.IsInRole("Student"))
                         {
-                            <a asp-controller="Project" asp-action="Index" class="btn btn-hero-outline btn-lg px-5 shadow-sm">
-                                <i class="bi bi-kanban me-2"></i> Go to Projects
+                            <a asp-controller="TaskAssignment" asp-action="Assignments" class="btn btn-hero-outline btn-lg px-5 shadow-sm">
+                                <i class="bi bi-clipboard-check me-2"></i> Check Assignments
                             </a>
                         }
                         @if (User.IsInRole("Instructor"))
@@ -108,10 +105,8 @@
         </div>
     </div>
 
-    <!-- FEATURE HIGHLIGHTS SECTION WITH COLORFUL TOP BORDERS -->
     <div class="row g-4 text-center mb-5">
 
-        <!-- Card 1: Course Management -->
         <div class="col-md-4">
             <div class="p-4 h-100 bg-white rounded-3 shadow-sm border-0 position-relative" style="border-top: 6px solid #3498DB !important;">
                 <div class="text-primary fs-2 mb-3 mt-2">
@@ -122,7 +117,6 @@
             </div>
         </div>
 
-        <!-- Card 2: Team Collaboration -->
         <div class="col-md-4">
             <div class="p-4 h-100 bg-white rounded-3 shadow-sm border-0 position-relative" style="border-top: 6px solid #8E44AD !important;">
                 <div class="fs-2 mb-3 mt-2" style="color: #8E44AD;">
@@ -133,7 +127,6 @@
             </div>
         </div>
 
-        <!-- Card 3: Role-Based Access -->
         <div class="col-md-4">
             <div class="p-4 h-100 bg-white rounded-3 shadow-sm border-0 position-relative" style="border-top: 6px solid #2A9D8F !important;">
                 <div class="fs-2 mb-3 mt-2" style="color: #2A9D8F;">

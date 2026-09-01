@@ -1,6 +1,6 @@
 ﻿namespace ResearchProjectManager.Models
 {
-    public class CourseMembers
+    public class CourseMember
     {
         public int Id { get; set; }
         public int UserId { get; set; }

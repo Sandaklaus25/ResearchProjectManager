@@ -1,5 +1,8 @@
-﻿@model IEnumerable<ResearchProjectManager.Models.Course>
+﻿@model ResearchProjectManager.ViewModels.CoursesViewModel
 
+@{
+    ViewData["Title"] = "Courses";
+}
 <style>
     .course-card {
         min-height: 240px;
@@ -78,8 +81,26 @@
         .custom-search .input-group-text, .custom-search .form-control {
             border-color: #dee2e6 !important;
         }
-</style>
 
+    /* Keeps description fixed and adds a clean scrollbar */
+    .desc-scroll {
+        max-height: 65px;
+        overflow-y: auto;
+        scrollbar-width: thin; /* Firefox */
+        /* These two lines pull the scroll box above the stretched-link overlay */
+        position: relative;
+        z-index: 2;
+    }
+
+        .desc-scroll::-webkit-scrollbar {
+            width: 5px;
+        }
+
+        .desc-scroll::-webkit-scrollbar-thumb {
+            background-color: #dee2e6;
+            border-radius: 5px;
+        }
+</style>
 <div class="container mt-4">
     <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-3">
 
@@ -102,33 +123,48 @@
                     Privacy <i></i>
                 </button>
             </div>
-
-            <a asp-action="Create" class="btn btn-primary shadow-sm text-nowrap new-course-btn">
+            @if(User.IsInRole("Instructor"))
+            {
+                <a asp-action="Create" class="btn btn-primary shadow-sm text-nowrap new-course-btn">
                 <i class="bi bi-plus-circle" style="margin-right:5px"></i> New Course
             </a>
+            }
         </div>
     </div>
 
     <div class="row" id="courseContainer">
-        @foreach (var item in Model)
+        @foreach (var item in Model.AllCourses)
         {
+            int memberCount = Model.StudentCounts.ContainsKey(item.Id) ? Model.StudentCounts[item.Id] : 0;
+            string themeColorHex = ResearchProjectManager.Enums.CourseTheme.Colors.ContainsKey(item.Color) ? ResearchProjectManager.Enums.CourseTheme.Colors[item.Color] : "#0d6efd";
+
             <div class="col-md-6 col-lg-4 mb-4 sortable-course"
                  data-name="@item.Name"
                  data-privacy="@item.IsPrivate">
 
-                <div class="card h-100 shadow-sm border-0 course-card" style="border-top: 20px solid @item.Color !important; border-bottom: 7px solid @item.Color !important">
+                <div class="card h-100 shadow-sm border-0 course-card" style="border-top: 20px solid @themeColorHex !important; border-bottom: 7px solid @themeColorHex !important">
                     <div class="card-body d-flex flex-column px-4 pt-3 pb-3">
 
-                        <div class="d-flex justify-content-between mb-2">
-                            @if (item.IsPrivate)
+                        <div class="d-flex justify-content-between align-items-center mb-2">
+                            <div>
+                                @if (item.IsPrivate)
+                                {
+                                    <span class="badge bg-dark"><i class="bi bi-lock-fill"></i> Private</span>
+                                }
+                                else
+                                {
+                                    <span class="badge bg-success"><i class="bi bi-globe"></i> Public</span>
+                                }
+                            </div>
+
+                            @if (User.IsInRole("Instructor") || User.IsInRole("TA"))
                             {
-                                <span class="badge bg-dark"><i class="bi bi-lock-fill"></i> Private</span>
+                                <button type="button" class="btn btn-sm btn-outline-primary p-0 d-flex align-items-center justify-content-center shadow-sm" style="width: 48px; height: 32px; border-radius: 20px; position: relative; z-index: 3;" 
+                                    onclick="copyCourseCode('@item.SpecialCode', this)" title="Copy Access Code">
+                                    <i class="bi bi-link fs-5"></i>
+                                </button>
                             }
-                            else
-                            {
-                                <span class="badge bg-success"><i class="bi bi-globe"></i> Public</span>
-                            }
-                        </div>
+                            </div>
 
                         <h4 class="card-title fw-bold mt-1 mb-1">
                             <a asp-action="Details" asp-route-id="@item.Id" class="text-decoration-none text-dark stretched-link">
@@ -136,9 +172,21 @@
                             </a>
                         </h4>
 
-                        <!-- Very small members count text directly under the title -->
-                        <div class="text-muted text-uppercase fw-semibold mb-3" style="font-size: 0.7rem; letter-spacing: 0.5px;">
-                            Members: @(item.Members?.Count ?? 0)
+                        <div class="text-muted text-uppercase fw-semibold mb-2" style="font-size: 0.7rem; letter-spacing: 0.5px;">
+                            Members: @memberCount
+                        </div>
+
+                        <div class="desc-scroll card-text small flex-grow-1 mb-3 pe-2">
+                            <a asp-action="Details" asp-route-id="@item.Id" class="text-decoration-none text-muted custom-hover-link d-block">
+                                @if (!string.IsNullOrEmpty(item.Description))
+                                {
+                                    @item.Description
+                                }
+                                else
+                                {
+                                    <span class="fst-italic">No description provided for this course.</span>
+                                }
+                            </a>
                         </div>
 
                         <div class="mt-auto">
@@ -146,19 +194,50 @@
 
                                 <div class="text-muted small d-flex align-items-center">
                                     <i class="bi bi-person-circle fs-4" style="margin-right:10px;"></i>
-                                    <span>Instructor:<br><strong>@(item.Owner?.UserName ?? "Unknown")</strong></span>
+                                    <span>Owner:<br><strong>@(item.Owner?.UserName ?? "Unknown")</strong></span>
                                 </div>
 
+                                @{
+                                    bool isOwner = item.Owner?.UserName == User.Identity?.Name;
+                                }
+
                                 <div class="card-actions">
-                                    <a asp-action="Edit" asp-route-id="@item.Id" class="btn btn-sm btn-outline-secondary px-2 py-1" title="Edit">
-                                        <i class="bi bi-pencil fs-6"></i>
-                                    </a>
-                                    <form asp-action="Delete" asp-route-id="@item.Id" method="post" onsubmit="return confirm('Are you sure you want to delete this course?')">
-                                        @Html.AntiForgeryToken()
-                                        <button type="submit" class="btn btn-sm btn-outline-danger px-2 py-1" title="Delete">
-                                            <i class="bi bi-trash fs-6"></i>
-                                        </button>
-                                    </form>
+                                    
+                                    @if (User.IsInRole("Instructor") && !isOwner || User.IsInRole("TA"))
+                                    {
+                                        <a asp-controller="TaskAssignment" asp-action="Index" asp-route-courseId="@item.Id" class="btn btn-sm btn-outline-primary px-3 py-1 fw-medium" title="View All Assignments">
+                                            <i class="bi bi-journal-text me-1"></i> Assignments
+                                        </a>
+                                    }
+                                    else if (User.IsInRole("Student"))
+                                    {
+                                        <a asp-controller="TaskAssignment" asp-action="MyCourseAssignments" asp-route-courseId="@item.Id" class="btn btn-sm btn-outline-primary px-3 py-1 fw-medium" title="My Assignments">
+                                            <i class="bi bi-journal-text me-1"></i> Assignments
+                                        </a>
+                                    }
+
+                                   
+                                    @if (isOwner)
+                                    {
+                                        <a asp-action="Edit" asp-route-id="@item.Id" class="btn btn-sm btn-outline-secondary px-3 py-1 fw-medium" title="Edit">
+                                            <i class="bi bi-pencil me-1"></i> Edit
+                                        </a>
+                                        <form asp-action="Delete" asp-route-id="@item.Id" method="post" onsubmit="return confirm('Are you sure you want to delete this course?')">
+                                            @Html.AntiForgeryToken()
+                                            <button type="submit" class="btn btn-sm btn-outline-danger px-3 py-1 fw-medium" title="Delete">
+                                                <i class="bi bi-trash me-1"></i> Delete
+                                            </button>
+                                        </form>
+                                    }
+                                    else
+                                    {
+                                        <form asp-action="Leave" asp-route-id="@item.Id" method="post" onsubmit="return confirm('Are you sure you want to leave this course? You will lose access to its workspace.')">
+                                            @Html.AntiForgeryToken()
+                                            <button type="submit" class="btn btn-sm btn-outline-danger px-3 py-1 fw-medium" title="Leave Course">
+                                                <i class="bi bi-box-arrow-left me-1"></i> Leave
+                                            </button>
+                                        </form>
+                                    }
                                 </div>
 
                             </div>
@@ -232,5 +311,21 @@
                 }
             });
         });
+        function copyCourseCode(code, btn) {
+            event.preventDefault(); 
+    
+            navigator.clipboard.writeText(code).then(() => {
+                
+                btn.innerHTML = '<i class="bi bi-check2-all fs-6"></i>';
+                btn.classList.replace('btn-outline-primary', 'btn-success');
+                btn.classList.add('text-white');
+        
+                setTimeout(() => {
+                    btn.innerHTML = '<i class="bi bi-link fs-5"></i>';
+                    btn.classList.replace('btn-success', 'btn-outline-primary');
+                    btn.classList.remove('text-white');
+                    }, 2000);
+                });
+            }
     </script>
 }

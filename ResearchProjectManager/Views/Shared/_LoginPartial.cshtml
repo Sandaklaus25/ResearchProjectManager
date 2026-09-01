@@ -3,7 +3,6 @@
 @inject SignInManager<User> SignInManager
 @inject UserManager<User> UserManager
 
-<!-- Changed gap-3 to gap-0 to eliminate the space between buttons -->
 <ul class="navbar-nav align-items-center gap-0">
     @if (SignInManager.IsSignedIn(User))
     {
@@ -25,13 +24,11 @@
     }
     else
     {
-        <!-- Login Button -->
         <li class="nav-item">
             <a class="btn btn-sm px-4 py-2 rounded-pill fw-semibold shadow-sm text-white d-flex align-items-center" asp-area="Identity" asp-page="/Account/Login" style="background-color: #2D3748; border-color: #2D3748; transition: all 0.2s ease-in-out;" onmouseover="this.style.backgroundColor='#1E293B'" onmouseout="this.style.backgroundColor='#2D3748'">
                 <i class="bi bi-box-arrow-in-right me-2 fs-6"></i> Log In
             </a>
         </li>
-        <!-- Register link with minimal spacing -->
         <li class="nav-item">
             <a class="nav-link text-muted px-3 fw-medium d-flex align-items-center custom-hover-link" asp-area="Identity" asp-page="/Account/Register">
                 <i class="bi bi-person-plus me-2 text-secondary"></i> Register

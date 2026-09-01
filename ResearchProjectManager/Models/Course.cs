@@ -1,4 +1,5 @@
-﻿using System.ComponentModel.DataAnnotations;
+﻿using ResearchProjectManager.Enums;
+using System.ComponentModel.DataAnnotations;
 
 namespace ResearchProjectManager.Models
 {
@@ -6,14 +7,22 @@ namespace ResearchProjectManager.Models
     {
         public int Id { get; set; }
 
+        [Required]
+        [MaxLength(40)]
         public string Name { get; set; }
+
+        [MaxLength(255)]
+        public string? Description { get; set; }
+
+        [Required]
+        [RegularExpression("^[a-zA-Z0-9]*$")]
+        [StringLength(9, MinimumLength = 9)]
+        public string SpecialCode { get; set; } // Unique code
 
         public bool IsPrivate { get; set; }
 
         [Required]
-        [StringLength(7)] // Limits the database column to 7 characters (e.g., "#FF5733")
-        [RegularExpression("^#([A-Fa-f0-9]{6})$")]
-        public string Color { get; set; }
+        public required CourseColor Color { get; set; }
 
         public int OwnerId { get; set; }
         public User Owner { get; set; }
@@ -21,7 +30,7 @@ namespace ResearchProjectManager.Models
 
         public List<TaskAssignment> TaskAssignments { get; set; } = new List<TaskAssignment>();
 
-        public List<CourseMembers> Members { get; set; } = new List<CourseMembers>();
+        public List<CourseMember> Members { get; set; } = new List<CourseMember>();
 
 
     }

@@ -27,7 +27,14 @@ namespace ResearchProjectManager.Services
                                 .ThenInclude(ut => ut.User) 
                             .FirstOrDefaultAsync(t => t.Id == id);
         }
-
+        public async Task<List<Team>> GetTeamsByCourseIdAsync(int courseId)
+        {
+            return await _context.Teams
+                            .Include(t => t.UserTeams)
+                                .ThenInclude(ut => ut.User)
+                            .Where(t => t.CourseId == courseId) // Filters out global teams
+                            .ToListAsync();
+        }
         public async Task<List<Team>> GetAllTeamsAsync()
         {
             return await _context.Teams
@@ -50,6 +57,24 @@ namespace ResearchProjectManager.Services
             };
             _context.UserTeams.Add(userTeam);
             await _context.SaveChangesAsync();
+        }
+        public async Task<(bool Success, string Message)> DeleteTeamSafeAsync(int teamId)
+        {
+            bool hasAssignments = await _context.TaskAssignments.AnyAsync(ta => ta.TeamId == teamId);
+            if (hasAssignments)
+            {
+                return (false, "Deletion denied: This team has active assignments tied to it.");
+            }
+
+            var team = await _context.Teams.FindAsync(teamId);
+            if (team != null)
+            {
+                _context.Teams.Remove(team);
+                await _context.SaveChangesAsync();
+                return (true, string.Empty);
+            }
+
+            return (false, "Team not found.");
         }
     }
 }
