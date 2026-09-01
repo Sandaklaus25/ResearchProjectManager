@@ -6,6 +6,7 @@ using ResearchProjectManager.ViewModels;
 
 namespace ResearchProjectManager.Controllers
 {
+    [Route("Course/{courseId}/ProjectTask/[action]")]
     public class ProjectTaskController : Controller
     {
         private readonly ProjectTaskService _taskService;
@@ -22,7 +23,7 @@ namespace ResearchProjectManager.Controllers
             return View(tasks);
         }
 
-        [HttpGet]
+        [HttpGet("{id}")]
         public async Task<IActionResult> Details(int id)
         {
             var task = await _taskService.GetTaskByIdAsync(id);
@@ -36,14 +37,14 @@ namespace ResearchProjectManager.Controllers
         }
 
         [HttpGet]
-        [Authorize(Roles = "Instructor,Admin")]
+        [Authorize(Roles = "Instructor")]
         public IActionResult Create()
         {
             return View(new ProjectTaskCreateViewModel());
         }
 
         [HttpPost]
-        [Authorize(Roles = "Instructor,Admin")]
+        [Authorize(Roles = "Instructor")]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Create(ProjectTaskCreateViewModel model)
         {

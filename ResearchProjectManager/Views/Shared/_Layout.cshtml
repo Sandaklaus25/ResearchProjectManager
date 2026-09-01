@@ -1,4 +1,25 @@
-﻿<!DOCTYPE html>
+﻿@inject ApplicationDbContext _context
+@using ResearchProjectManager.Models
+@{
+    var activeCourseId = ViewContext.RouteData.Values["courseId"]?.ToString();
+    string courseColor = string.Empty;
+
+    if (string.IsNullOrEmpty(activeCourseId) && ViewContext.RouteData.Values["controller"]?.ToString() == "Course")
+    {
+        activeCourseId = ViewContext.RouteData.Values["id"]?.ToString();
+    }
+
+    if (!string.IsNullOrEmpty(activeCourseId) && int.TryParse(activeCourseId, out int parsedId))
+    {
+        var course = _context.Courses.Find(parsedId);
+        if (course != null && !string.IsNullOrEmpty(course.Color))
+        {
+            courseColor = course.Color;
+        }
+    }
+}
+
+<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="utf-8" />
@@ -8,36 +29,129 @@
     <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
     <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
     <link rel="stylesheet" href="~/ResearchProjectManager.styles.css" asp-append-version="true" />
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+    
+    <style>
+        .custom-navbar {
+            background: rgba(255, 255, 255, 0.98) !important;
+            backdrop-filter: blur(10px);
+        }
+        .custom-nav-link {
+            transition: color 0.2s ease, transform 0.2s ease;
+            position: relative;
+        }
+        .custom-nav-link:hover {
+            color: #0d6efd !important;
+            transform: translateY(-1px);
+        }
+        .custom-nav-pill {
+            transition: background-color 0.2s ease, box-shadow 0.2s ease;
+        }
+        .custom-nav-pill:hover {
+            background-color: #f8f9fa !important;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.05) !important;
+        }
+        .custom-logout-btn {
+            transition: all 0.2s ease;
+        }
+        .custom-logout-btn:hover {
+            background-color: #fee2e2;
+            color: #dc3545 !important;
+        }
+        .custom-hover-link:hover {
+            color: #2D3748 !important;
+        }
+    </style>
 </head>
-<body>
+<body style="padding-bottom: 30px; background-color: #f8fafc;">
     <header>
-        <nav class="navbar navbar-expand-sm navbar-toggleable-sm navbar-light bg-white border-bottom box-shadow mb-3">
-            <div class="container">
-                <a class="navbar-brand" asp-controller="Home" asp-action="Index">ResearchProjectManager</a>
-                <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target=".navbar-collapse" aria-controls="navbarSupportedContent"
+        <nav class="navbar navbar-expand-sm navbar-toggleable-sm navbar-light custom-navbar border-bottom shadow-sm py-1 mb-4">
+            <!-- Using ms-3 to keep logo position locked, and me-1 to push the right side further to the edge -->
+            <div class="container-fluid ms-3 me-1">
+                
+                <a class="navbar-brand fw-bold text-dark d-flex align-items-center gap-2 me-4" asp-controller="Home" asp-action="Index">
+                    <div class="bg-primary text-white rounded d-flex align-items-center justify-content-center shadow-sm" style="width: 32px; height: 32px;">
+                        <i class="bi bi-layers-half fs-5"></i>
+                    </div>
+                    <span style="letter-spacing: -0.5px;">ProjectManager</span>
+                </a>
+                
+                <button class="navbar-toggler border-0 shadow-none" type="button" data-bs-toggle="collapse" data-bs-target=".navbar-collapse" aria-controls="navbarSupportedContent"
                         aria-expanded="false" aria-label="Toggle navigation">
                     <span class="navbar-toggler-icon"></span>
                 </button>
+                
                 <div class="navbar-collapse collapse d-sm-inline-flex justify-content-between">
-                    <ul class="navbar-nav flex-grow-1">
-                        <li class="nav-item">
-                            <a class="nav-link text-dark" asp-controller="Home" asp-action="Index">Home</a>
-                        </li>
+                    <ul class="navbar-nav flex-grow-1 align-items-center gap-1">
+                        
+                        @if (User.IsInRole("Admin"))
+                        {
+                            <li class="nav-item">
+                                <a class="nav-link fw-medium custom-nav-link text-secondary" asp-controller="AdminPanel" asp-action="Index">
+                                    <i class="bi bi-shield-lock me-1"></i> Admin Panel
+                                </a>
+                            </li>
+                        }
+
+                        @if (User.IsInRole("Instructor") || User.IsInRole("Student"))
+                        {
+                            <li class="nav-item">
+                                <a class="nav-link fw-bold custom-nav-link text-dark" asp-controller="Course" asp-action="Index">
+                                    <i class="bi bi-journal-bookmark me-1"></i> Courses
+                                </a>
+                            </li>
+                            
+                            @if (!string.IsNullOrEmpty(activeCourseId))
+                            {
+                                <li class="nav-item d-none d-lg-flex align-items-center mx-2">
+                                    <span class="text-muted opacity-25">|</span>
+                                </li>
+
+                                <li class="nav-item">
+                                    <a class="nav-link fw-medium text-dark px-3 py-2"
+                                       style="border-bottom: 3px solid @courseColor;"
+                                       asp-controller="ProjectTask"
+                                       asp-action="Index"
+                                       asp-route-courseId="@activeCourseId">Tasks</a>
+                                </li>
+                                <li class="nav-item">
+                                    <a class="nav-link fw-medium text-dark px-3 py-2"
+                                       style="border-bottom: 3px solid @courseColor;"
+                                       asp-controller="TaskAssignment"
+                                       asp-action="Index"
+                                       asp-route-courseId="@activeCourseId">Assignments</a>
+                                </li>
+                                <li class="nav-item">
+                                    <a class="nav-link fw-medium text-dark px-3 py-2"
+                                       style="border-bottom: 3px solid @courseColor;"
+                                       asp-controller="Team"
+                                       asp-action="Index"
+                                       asp-route-courseId="@activeCourseId">Members</a>
+                                </li>
+                            }
+                        }
                     </ul>
                     <partial name="_LoginPartial" />
                 </div>
             </div>
         </nav>
     </header>
+    
     <div class="container">
         <main role="main" class="pb-3">
             @RenderBody()
         </main>
     </div>
 
-    <footer class="border-top footer text-muted">
-        <div class="container">
-            &copy; 2026 - ResearchProjectManager - <a asp-area="" asp-page="/Privacy">Privacy</a>
+    <footer class="bg-dark text-light shadow-sm fixed-bottom" style="padding: 10px 0;">
+        <div class="container-fluid mx-2 d-flex flex-wrap justify-content-between align-items-center">
+            <div class="col-md-4 d-flex align-items-center">
+                <span class="mb-0 text-white-50 fw-semibold">&copy; <span style="visibility:hidden">@@</span>ResearchProjectManager</span>
+            </div>
+
+            <div class="col-md-4 d-flex align-items-center justify-content-end text-white-50">
+                <span id="live-clock" class="mb-0 mx-4"></span>
+            </div>
         </div>
     </footer>
 
@@ -46,5 +160,21 @@
     <script src="~/js/site.js" asp-append-version="true"></script>
 
     @await RenderSectionAsync("Scripts", required: false)
+
+    <script>
+            function updateClock() {
+                const now = new Date();
+                const options = {
+                    year: 'numeric',
+                    month: 'short',
+                    day: 'numeric',
+                    hour: '2-digit',
+                    minute: '2-digit'
+                };
+                document.getElementById('live-clock').textContent = now.toLocaleDateString(undefined, options);
+            }
+            updateClock();
+            setInterval(updateClock, 1000);
+    </script>
 </body>
 </html>

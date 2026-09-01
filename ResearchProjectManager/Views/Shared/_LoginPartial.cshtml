@@ -3,25 +3,39 @@
 @inject SignInManager<User> SignInManager
 @inject UserManager<User> UserManager
 
-<ul class="navbar-nav">
-@if (SignInManager.IsSignedIn(User))
-{
-    <li class="nav-item">
-        <a  class="nav-link text-dark" asp-area="Identity" asp-page="/Account/Manage/Index" title="Manage">Hello @User.Identity?.Name!</a>
-    </li>
-    <li class="nav-item">
-        <form class="form-inline" asp-area="Identity" asp-page="/Account/Logout" asp-route-returnUrl="@Url.Page("/Index", new { area = "" })">
-            <button  type="submit" class="nav-link btn btn-link text-dark">Logout</button>
-        </form>
-    </li>
-}
-else
-{
-    <li class="nav-item">
-        <a class="nav-link text-dark" asp-area="Identity" asp-page="/Account/Register">Register</a>
-    </li>
-    <li class="nav-item">
-        <a class="nav-link text-dark" asp-area="Identity" asp-page="/Account/Login">Login</a>
-    </li>
-}
+<!-- Changed gap-3 to gap-0 to eliminate the space between buttons -->
+<ul class="navbar-nav align-items-center gap-0">
+    @if (SignInManager.IsSignedIn(User))
+    {
+        <li class="nav-item">
+            <a class="nav-link text-dark px-3 py-2 rounded-pill bg-light border d-flex align-items-center shadow-sm custom-nav-pill me-2" title="Manage Profile" asp-area="Identity" asp-page="/Account/Manage/Index">
+                <i class="bi bi-person-circle text-primary me-2 fs-5" style="line-height: 1;"></i>
+                <span class="small fw-semibold text-secondary mb-0" style="line-height: 1;">
+                    Hello, <span class="text-dark">@User.Identity?.Name</span>
+                </span>
+            </a>
+        </li>
+        <li class="nav-item">
+            <form class="form-inline m-0" asp-area="Identity" asp-page="/Account/Logout" asp-route-returnUrl="@Url.Action("Index", "Home", new { area = "" })">
+                <button type="submit" class="btn btn-outline-secondary border-0 btn-sm px-3 rounded-pill fw-medium d-flex align-items-center custom-logout-btn">
+                    <i class="bi bi-box-arrow-right me-2"></i> Logout
+                </button>
+            </form>
+        </li>
+    }
+    else
+    {
+        <!-- Login Button -->
+        <li class="nav-item">
+            <a class="btn btn-sm px-4 py-2 rounded-pill fw-semibold shadow-sm text-white d-flex align-items-center" asp-area="Identity" asp-page="/Account/Login" style="background-color: #2D3748; border-color: #2D3748; transition: all 0.2s ease-in-out;" onmouseover="this.style.backgroundColor='#1E293B'" onmouseout="this.style.backgroundColor='#2D3748'">
+                <i class="bi bi-box-arrow-in-right me-2 fs-6"></i> Log In
+            </a>
+        </li>
+        <!-- Register link with minimal spacing -->
+        <li class="nav-item">
+            <a class="nav-link text-muted px-3 fw-medium d-flex align-items-center custom-hover-link" asp-area="Identity" asp-page="/Account/Register">
+                <i class="bi bi-person-plus me-2 text-secondary"></i> Register
+            </a>
+        </li>
+    }
 </ul>
